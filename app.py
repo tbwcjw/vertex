@@ -29,6 +29,7 @@ PASSKEY = config.get('tracker.passkey')
 MAX_NUM_WANT = config.get('tracker.max_num_want')
 INTERVAL = config.get('tracker.interval')
 MIN_INTERVAL = config.get('tracker.min_interval')
+MIN_SCRAPE_INTERAL = config.get('tracker.min_scrape_interval')
 TRACKER_ID = config.get('tracker.tracker_id')
 
 @app.errorhandler(ValidationError)
@@ -51,7 +52,8 @@ def scrape():
             return Response(bc.encode({"failure reason": "fullscrape not enabled"}), mimetype='text/plain')
 
     for info_hash in info_hashes:
-        result = db.get_peers(info_hash)
+        decoded = decode_info_hash(info_hash)
+        result = db.get_peers(decoded)
         if len(result) < 1:
             return Response(bc.encode({"failure reason": f"info_hash {info_hash} not found"}), mimetype='text/plain')
 
@@ -72,8 +74,8 @@ def scrape():
             incomplete=incomplete
         )
         response_data = ScrapeResponse(
-        flags={'min_request_interval': MIN_INTERVAL},
-        results=results
+        flags={'min_request_interval': MIN_SCRAPE_INTERAL},
+        files=results
     )
     if type == 'json':
         return jsonify(results), 200

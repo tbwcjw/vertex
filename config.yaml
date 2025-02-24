@@ -18,6 +18,10 @@
 #     Interval in seconds that the client should wait between sending regular requests to the tracker
 #   min_interval: <int> default: 10
 #     Minimum announce interval. If present clients must not reannounce more frequently than this.
+#   fullscrape: <bool> default: False
+#     whether or not clients can fullscrape. fullscraping is returning information on every infohash.
+#   min_scrape_interval: <int> default: 100
+#     minimum scrape interval. if present clients must not scrape more frequently than this
 tracker:
   tracker_id: "vertex"
   private: False
@@ -25,6 +29,7 @@ tracker:
   max_num_want: 30
   interval: 120
   min_interval: 10
+  min_scrape_interval: 100
   fullscrape: False
 
 # http

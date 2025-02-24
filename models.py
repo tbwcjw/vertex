@@ -54,4 +54,4 @@ class ScrapeResult(BaseModel):
 
 class ScrapeResponse(BaseModel):
     flags: Dict[str, Any]
-    results: Dict[str, ScrapeResult]
+    files: Dict[str, ScrapeResult]
