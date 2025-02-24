@@ -1,0 +1,15 @@
+tracker:
+  tracker_id: "vertex"
+  private: False
+  passkey: "password"
+  max_num_want: 30
+  interval: 120
+  min_interval: 10
+
+
+
+storage:
+  type: "hashmap"
+  cleanup_at: "12:00"
+  remove_older_than: "1 day"
+  remove_older_than_secs: 86400

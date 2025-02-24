@@ -1,0 +1,5 @@
+__pycache__
+.venv
+peers.db
+peers.db-shm
+peers.db-wal
