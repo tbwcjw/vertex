@@ -14,7 +14,7 @@ OLDER_THAN = f"-{config.get('remove_older_than')}"
 
 
 class Database(StorageInterface):
-    def __init__(self, db_name='peers.db'):
+    def __init__(self, db_name=config.get('storage.db_name')):
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.cursor = self.conn.cursor()

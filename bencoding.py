@@ -3,7 +3,8 @@ import itertools as it
 import time
 from typing import Any, Dict, List, Tuple, Union
 
-# Simple bencoding library with added (unofficial) support for floats and tuples.
+# simple bencoding library with added (unofficial) support for floats and tuples.
+# tbwcjw 2025
 
 class Bencoding:
     def __init__(self):

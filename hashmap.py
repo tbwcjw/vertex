@@ -5,7 +5,7 @@ from storageinterface import StorageInterface
 from configloader import ConfigLoader
 
 config = ConfigLoader()
-CLEANUP_TIME = config.get('storage.remove_older_than_secs')  # 1 day in seconds
+CLEANUP_TIME = config.get('storage.remove_older_than_secs')  
 
 
 class Hashmap(StorageInterface):

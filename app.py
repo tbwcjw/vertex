@@ -3,17 +3,19 @@ import struct
 import sys
 from threading import Thread
 import time
-from typing import Any, Dict, Literal, Optional, Union
 
 import urllib
+
+from pydantic import ValidationError
 from bencoding import Bencoding
-from flask import Flask, json, jsonify, request, Response
-from pydantic import BaseModel, ValidationError, constr, conint, validator
+from flask import Flask, json, jsonify, request, Response, g
 import ipaddress
 
 from bencoding import Bencoding
 from storagemanager import StorageManager
 from configloader import ConfigLoader
+
+from models import Announce, AnnounceResponse, ScrapeResponse, ScrapeResult
 
 import schedule
 
@@ -29,65 +31,12 @@ INTERVAL = config.get('tracker.interval')
 MIN_INTERVAL = config.get('tracker.min_interval')
 TRACKER_ID = config.get('tracker.tracker_id')
 
-class Announce(BaseModel):
-    ipv4: Optional[str] = None
-    ipv6: Optional[str] = None
-    info_hash: constr(min_length=20, max_length=2000, strict=True) = None
-    peer_id:  Optional[constr(min_length=20, max_length=20, strict=True)]
-    key: Optional[str] = None
-    port: conint(ge=0, le=65535)
-    ipv6port: None
-    downloaded: conint(ge=0, le=sys.maxsize)
-    uploaded: conint(ge=0, le=sys.maxsize)
-    left: conint(ge=0, le=sys.maxsize)
-    passkey: Optional[str] = None
-    event: Optional[Literal["started", "stopped", "completed"]] = ""
-    numwant: Optional[conint(ge=0, le=sys.maxsize)] = 150
-    compact: Optional[conint(ge=0, le=1)] = 0
-
-class AnnounceResponse(BaseModel):
-    failure_reason: Optional[str] = None
-    warning_message: Optional[str] = None
-    interval: Optional[conint(ge=0, le=sys.maxsize)] = INTERVAL
-    min_interval: Optional[conint(ge=0, le=sys.maxsize)] = MIN_INTERVAL
-    complete: Optional[conint(ge=0, le=sys.maxsize)] = None
-    incomplete: Optional[conint(ge=0, le=sys.maxsize)] = None
-    peers: Optional[Union[dict, bytes]] = None
-    tracker_id: Optional[constr(min_length=6, max_length=20, strict=True)] = TRACKER_ID
-
-    #it makes sense that the request has underscores...
-    #so why not the response too?
-    def dict(self, *args, **kwargs):
-        original_dict = super().dict(*args, **kwargs)
-        return {k.replace('_', ' '): v for k, v in original_dict.items() if v}
-
-    #as per spec, if failure reason is given no other responses will be given
-    @validator('failure_reason', pre=True, always=True)
-    def check_failure_reason(cls, v, values):
-        if v is not None:
-            values['warning_message'] = None
-            values['interval'] = None
-            values['min_interval'] = None
-            values['complete'] = None
-            values['incomplete'] = None
-            values['peers'] = None
-        return v
-
 @app.errorhandler(ValidationError)
 def handle_validation_error(error):
     errors = [{"loc": err['loc'], "msg": err['msg']} for err in error.errors()]
     result = ", ".join(f"{err['loc']}: {err['msg']}" for err in errors)
 
     return Response(bc.encode({"failure reason": result}), mimetype='text/plain')
-
-class ScrapeResult(BaseModel):
-    complete: conint(ge=0) 
-    downloaded: conint(ge=0)
-    incomplete: conint(ge=0)
-
-class ScrapeResponse(BaseModel):
-    flags: Dict[str, Any]
-    results: Dict[str, ScrapeResult]
 
 @app.route("/scrape", methods=["GET"])
 def scrape():
@@ -153,9 +102,6 @@ def announce():
         print(f"client is ipv4")
     print(request.url)
 
-    #honor no peer id
-    #spec says to ignore no_peer_id when using compact
-    no_peer_id = request.args.get('no_peer_id') == '1'
     compact = request.args.get('compact') == '1'
     peer_id = request.args.get('peer_id')
 
@@ -235,7 +181,6 @@ def announce():
     return Response(bc.encode(response.dict()), mimetype='text/plain')
 
 def run_schedule():
-    #todo \/ make this work with config file
     schedule.every().day.at(config.get('storage.cleanup_at')).do(db.cleanup_peers)
     
     while True:
@@ -243,9 +188,10 @@ def run_schedule():
         time.sleep(1)
         
 if __name__ == "__main__":
-    scheduler_thread = Thread(target=run_schedule)
-    scheduler_thread.start()
-    app.run("127.0.0.1", 5000, debug=True)
+    if config.get('storage.run_schedule'):
+        scheduler_thread = Thread(target=run_schedule)
+        scheduler_thread.start()
+    
+    app.run(host=config.get('http.ip_bind'), port=config.get('http.ip_port'), debug=True)
 
-    
-    
+

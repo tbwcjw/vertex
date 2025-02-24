@@ -1,3 +1,23 @@
+# vertex config file
+# tbwcjw 2025
+#
+
+# tracker
+#   tracker_id: <string> default: "vertex"
+#     A string that the client should send back on its next announcements.
+#     If absent and a previous announce sent a tracker id, do not discard the old value; keep using it.
+#   private: <bool> default: False
+#     Whether or not clients need to pass the `passkey` argument to announce.
+#   passkey: <string> default: "password"
+#     Passphrase given by client if tracker is private
+#   max_num_want: <int> default: 30
+#     numwant is the number of peers the client would like to recieve. we limit this as to stop
+#     clients overzealously hammering the tracker. Specification says a default 50 is perfect
+#     but suggests that 30 is more than enough peers for any one client
+#   interval: <int> default: 120
+#     Interval in seconds that the client should wait between sending regular requests to the tracker
+#   min_interval: <int> default: 10
+#     Minimum announce interval. If present clients must not reannounce more frequently than this.
 tracker:
   tracker_id: "vertex"
   private: False
@@ -6,10 +26,35 @@ tracker:
   interval: 120
   min_interval: 10
 
+# http
+# 
+# ip_bind: <string> default "127.0.0.1"
+#   accepts ipv4 and ipv6 loopbacks (127.0.0.1/0.0.0.0 or :: ::1)
+# ip_port: <integer> default "6969"
+http:
+  ip_bind: "127.0.0.1"
+  ip_port: 6969
 
-
+# storage
+#   type: <string> hashmap|sqlite default: "hashmap"
+#     sqlite3 database is far slower, but persistent.
+#     hashmap is faster, but volatile.
+#   db_name: <string> default "peers.db"
+#     this is for nonvolatile sqlite db only. allows pathing.
+#   run_schedule: <bool> default: False
+#     toggle scheduled tasks.
+#   cleanup_at: <string> (HH:SS) default: "12:00"
+#     time of day to run the cleanup job
+#   remove_older_than: <string> (X month|week|day|hour|minute) default: "1 day"
+#     this is for sqlite type, not hashmap.
+#     removes peers that haven't been updated by this threshold
+#   remove_older_than_secs: <int> default: 86400 (1 day)
+#     this is for hashmap type, not sqlite
+#     removes peers that haven't been updated by this threshold
 storage:
-  type: "hashmap"
-  cleanup_at: "12:00"
+  type: "hashmap"    
+  db_name: "peers.db"     
+  run_schedule: False
+  cleanup_at: "3:07"
   remove_older_than: "1 day"
   remove_older_than_secs: 86400
