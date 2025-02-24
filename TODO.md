@@ -2,14 +2,6 @@
 
 ## Short Term
 
-- **Add failure reason to scrape**  
-  - Any `infohash` that fails to scrape will get a failure reason.
-    Should we only return a failure reason if one fails? like announce?
-
-- **Add fullscrape capability**  
-  - If no `info_hashes` are given, scrape the whole peers list.  
-  - **Add config option** to turn on/off this capability.
-
 - **Add `no_peer_id` to data structures**  
   - Prevent accidental exposure of `peer_ids` when the client requests not to.
 
@@ -55,6 +47,9 @@
   - Total completed count  
 
 ## Mid Term
+
+- **Logging**
+  - Logging levels: error, warning, caution, info
 
 - **Rate-limiting**
   - Limit individual methods. Offenders get blacklisted.

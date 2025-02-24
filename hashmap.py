@@ -51,6 +51,9 @@ class Hashmap(StorageInterface):
     def get_peers(self, info_hash):
         return [peer for peer in self.peers.values() if peer["info_hash"] == info_hash]
 
+    def fullscrape(self):
+        return [peer['info_hash'] for peer in self.peers.values()]
+    
     def get_peers_for_response(self, info_hash, numwant):
         peers = {
             peer["peer_id"]: {"ip": peer["ip"], "port": peer["port"]}

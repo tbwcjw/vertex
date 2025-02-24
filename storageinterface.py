@@ -22,3 +22,6 @@ class StorageInterface(ABC):
     @abstractmethod
     def cleanup_peers(self):
         pass
+    @abstractmethod
+    def fullscrape(self):
+        pass

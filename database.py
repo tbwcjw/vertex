@@ -60,6 +60,13 @@ class Database(StorageInterface):
             result = cursor.fetchall()
         return result
     
+    def fullscrape(self):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT info_hash FROM peers")
+            result = [row[0] for row in cursor.fetchall()]
+        return result
+    
     def get_peers_for_response(self, info_hash, numwant):
         with self.conn:
             cursor = self.conn.cursor()

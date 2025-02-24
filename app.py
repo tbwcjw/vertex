@@ -43,9 +43,17 @@ def scrape():
     info_hashes = request.args.getlist('info_hash')
     type = request.args.get('type')
     results = {} 
+    #fullscrape
+    if not info_hashes:  
+        if config.get('tracker.fullscrape'):  
+            info_hashes = db.fullscrape()  
+        else:  
+            return Response(bc.encode({"failure reason": "fullscrape not enabled"}), mimetype='text/plain')
 
     for info_hash in info_hashes:
         result = db.get_peers(info_hash)
+        if len(result) < 1:
+            return Response(bc.encode({"failure reason": f"info_hash {info_hash} not found"}), mimetype='text/plain')
 
         complete = 0
         downloaded = 0
