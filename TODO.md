@@ -2,9 +2,6 @@
 
 ## Short Term
 
-- **Add `no_peer_id` to data structures**  
-  - Prevent accidental exposure of `peer_ids` when the client requests not to.
-
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:
     - If the client is a **seeder** → Return peers with **incomplete clients**.

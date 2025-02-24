@@ -1,3 +1,4 @@
+from itertools import islice
 import time
 from collections import defaultdict
 
@@ -13,10 +14,11 @@ class Hashmap(StorageInterface):
         self.peers = {}  
         self.info_hash_index = defaultdict(set)  
 
-    def insert_peer(self, peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_complete):
+    def insert_peer(self, peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_complete):
         peer_key = (peer_id, info_hash)
         peer_data = {
             "peer_id": peer_id,
+            "no_peer_id": no_peer_id,
             "info_hash": info_hash,
             "ip": ipv4 if ipv4 else ipv6,
             "port": port,
@@ -30,10 +32,11 @@ class Hashmap(StorageInterface):
         self.peers[peer_key] = peer_data
         self.info_hash_index[info_hash].add(peer_id)
 
-    def update_peer(self, peer_id, info_hash, is_complete, last_event, uploaded, downloaded, left):
+    def update_peer(self, peer_id, no_peer_id, info_hash, is_complete, last_event, uploaded, downloaded, left):
         peer_key = (peer_id, info_hash)
         if peer_key in self.peers:
             self.peers[peer_key].update({
+                "no_peer_id": no_peer_id,
                 "is_completed": is_complete,
                 "last_event": last_event,
                 "uploaded": uploaded,
@@ -56,10 +59,11 @@ class Hashmap(StorageInterface):
     
     def get_peers_for_response(self, info_hash, numwant):
         peers = {
-            peer["peer_id"]: {"ip": peer["ip"], "port": peer["port"]}
+            peer["peer_id"] if not peer.get("no_peer_id", 0) else "": 
+            {"ip": peer["ip"], "port": peer["port"]}
             for peer in self.peers.values() if peer["info_hash"] == info_hash
         }
-        return dict(list(peers.items())[:numwant])
+        return dict(islice(peers.items(), numwant))
 
     def cleanup_peers(self):
         current_time = time.time()

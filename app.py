@@ -88,7 +88,7 @@ def decode_info_hash(string):
 def pack_ip_port(ip, port):
     result = b""
     ip_bytes = socket.inet_aton(ip)   #4 byte binary
-    port_bytes = struct.pack("!H", port)  #2 byte big edian
+    port_bytes = struct.pack("!H", port) #2 byte big edian
     result = ip_bytes + port_bytes
     return result
 
@@ -147,13 +147,12 @@ def announce():
     
     peers = db.get_peers(info_hash=data.info_hash)
 
-
     if len(peers) < 1:
-        db.insert_peer(data.peer_id, data.info_hash, data.ipv4, data.ipv6, data.port, data.uploaded, data.downloaded, data.left, data.event, is_completed)
+        db.insert_peer(data.peer_id, data.no_peer_id, data.info_hash, data.ipv4, data.ipv6, data.port, data.uploaded, data.downloaded, data.left, data.event, is_completed)
     else:
         print('UPDATING PEER')
-        db.update_peer(data.peer_id, data.info_hash, is_completed, data.event, data.uploaded, data.downloaded, data.left)
-
+        db.update_peer(data.peer_id, data.no_peer_id, data.info_hash, is_completed, data.event, data.uploaded, data.downloaded, data.left)
+    
     if data.compact:
         compact = b""
         peers = db.get_peers_for_response(info_hash, data.numwant)

@@ -7,6 +7,7 @@ class Announce(BaseModel):
     ipv6: Optional[str] = None
     info_hash: constr(min_length=20, max_length=2000, strict=True) = None
     peer_id:  Optional[constr(min_length=20, max_length=20, strict=True)]
+    no_peer_id: Optional[conint(ge=0, le=1)] = 0
     key: Optional[str] = None
     port: conint(ge=0, le=65535)
     ipv6port: None
