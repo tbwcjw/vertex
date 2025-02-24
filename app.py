@@ -89,7 +89,6 @@ class ScrapeResponse(BaseModel):
     flags: Dict[str, Any]
     results: Dict[str, ScrapeResult]
 
-
 @app.route("/scrape", methods=["GET"])
 def scrape():
     info_hashes = request.args.getlist('info_hash')
@@ -119,8 +118,6 @@ def scrape():
         flags={'min_request_interval': MIN_INTERVAL},
         results=results
     )
-
-
     if type == 'json':
         return jsonify(results), 200
     return Response(bc.encode(response_data.dict()), mimetype='text/plain')
@@ -130,6 +127,13 @@ def scrape():
 def decode_info_hash(string):
     return urllib.parse.unquote_to_bytes(string).hex()
 
+#network byte order ip+port for compact string
+def pack_ip_port(ip, port):
+    result = b""
+    ip_bytes = socket.inet_aton(ip)   #4 byte binary
+    port_bytes = struct.pack("!H", port)  #2 byte big edian
+    result = ip_bytes + port_bytes
+    return result
 
 @app.route("/announce", methods=["GET"])
 def announce():
@@ -148,6 +152,7 @@ def announce():
         client_ipv6 = None
         print(f"client is ipv4")
     print(request.url)
+
     #honor no peer id
     #spec says to ignore no_peer_id when using compact
     no_peer_id = request.args.get('no_peer_id') == '1'
@@ -202,9 +207,7 @@ def announce():
             ip = peer["ip"]
             port = peer["port"]
 
-            ip_bytes = socket.inet_aton(ip)   #4 byte binary
-            port_bytes = struct.pack("!H", port)  #2 byte big edian
-            compact += ip_bytes + port_bytes
+            compact += pack_ip_port(ip, port)
             
         peers = bc.encode(compact)
 
