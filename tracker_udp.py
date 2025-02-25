@@ -47,7 +47,7 @@ class UDPTracker:
     def run(self):
         threads = []
         for sock in self.sockets:
-            thread_name = "vertex_ipv6_udp" if sock.family == socket.AF_INET6 else "vertex_ipv4_udp"
+            thread_name = "tracker_udp_ipv6" if sock.family == socket.AF_INET6 else "tracker_udp_ipv4"
             thread = threading.Thread(target=self.listen, args=(sock,), name=thread_name)
             threads.append(thread)
             thread.start()
@@ -62,6 +62,7 @@ class UDPTracker:
 
     def handle_packet(self, data, addr, family):
         if len(data) < 16:
+            print(f"invalid packet from {addr}")
             return  # Ignore invalid packets
 
         action, = struct.unpack_from(">I", data, 8)
@@ -75,7 +76,7 @@ class UDPTracker:
             self.handle_scrape(data, addr, is_ipv6)
 
     def handle_connect(self, data, addr, is_ipv6):
-        """Handles UDP connection requests from clients."""
+
         print(f"connection {addr}: {data.hex()}")
         transaction_id = struct.unpack_from(">I", data, 12)[0]
         connection_id = random.randint(0, 0xFFFFFFFFFFFFFFFF)
@@ -92,7 +93,6 @@ class UDPTracker:
 
         info_hash = info_hash.hex()
 
-        # Determine if peer completed the download
         is_completed = 1 if left == 0 or event == 1 else 0
 
         status_map = {
@@ -121,7 +121,8 @@ class UDPTracker:
         sock.sendto(response, addr)
 
     def handle_scrape(self, data, addr, is_ipv6):
-        """Handles UDP scrape requests."""
+
+        print(f"handle announce {addr[0]}:{addr[1]}: {unpacked}")
         unpacked = struct.unpack(">QII", data[:16])
         connection_id, action, transaction_id = unpacked
 
@@ -132,12 +133,3 @@ class UDPTracker:
         response = struct.pack(">II", ACTION_SCRAPE, transaction_id) + b"".join(response_data)
         sock = self.server_ipv6 if is_ipv6 else self.server_ipv4
         sock.sendto(response, addr)
-
-if __name__ == "__main__":
-    if config.get('udp.server_enable'):
-        udp_tracker = UDPTracker(
-            ipv4_ip=config.get('udp.ipv4_bind'),
-            ipv4_port=config.get('udp.ipv4_port'),
-            ipv6_ip=config.get('udp.ipv6_bind'),
-            ipv6_port=config.get('udp.ipv6_port'))
-        udp_tracker.run()

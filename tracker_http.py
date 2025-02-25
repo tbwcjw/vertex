@@ -22,6 +22,7 @@ import schedule
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 bc = Bencoding
+
 app = Flask(__name__)
 
 PRIVATE = config.get('tracker.private')
@@ -188,19 +189,3 @@ def announce():
     elapsed = end_time - start_time
     print(f"elapsed time: {elapsed}")
     return Response(bc.encode(response.dict()), mimetype='text/plain')
-
-def run_schedule():
-    schedule.every().day.at(config.get('storage.cleanup_at')).do(db.cleanup_peers)
-    
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-        
-if __name__ == "__main__":
-    if config.get('storage.run_schedule'):
-        scheduler_thread = Thread(target=run_schedule)
-        scheduler_thread.start()
-    
-    app.run(host=config.get('http.ip_bind'), port=config.get('http.ip_port'), debug=True)
-
-

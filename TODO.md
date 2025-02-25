@@ -1,6 +1,10 @@
 # To-Do List
 
 ## Short Term
+- Fix insert peer logic. should insert new peers, right now it is looking for
+  infohash, and updating if it finds the infohash. only one peer per torrent
+  is inserted right now.
+
 - Make peer_id's hexidecimal
 
 - **Implement peer selection algorithm**  
@@ -54,6 +58,3 @@
 - **Blacklist**
   - Block or deny requests from IPs.  
   - Directly modify `iptables` using `from pyroute2 import IPRoute`.
-
-- **Add TCP and UDP servers**
-  - Support concurrent operation of all servers, a combination, or just one.

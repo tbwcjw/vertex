@@ -44,6 +44,7 @@ http:
 
 # udp
 # note: UDP implementation is not yet complete. ipv6 is untested.
+# udp cannot be private as per bittorrent specification.
 udp:
   server_enable: True
 
@@ -53,7 +54,7 @@ udp:
 
   ipv6_enable: True
   ipv6_bind: "::1"
-  ipv6_port: 5001
+  ipv6_port: 5002
 
 # storage
 #   type: <string> hashmap|sqlite default: "hashmap"
@@ -63,7 +64,7 @@ udp:
 #     this is for nonvolatile sqlite db only. allows pathing.
 #   run_schedule: <bool> default: False
 #     toggle scheduled tasks.
-#   cleanup_at: <string> (HH:SS) default: "12:00"
+#   cleanup_at: <string> (HH:MM) default: "12:00"
 #     time of day to run the cleanup job
 #   remove_older_than: <string> (X month|week|day|hour|minute) default: "1 day"
 #     this is for sqlite type, not hashmap.
@@ -72,9 +73,9 @@ udp:
 #     this is for hashmap type, not sqlite
 #     removes peers that haven't been updated by this threshold
 storage:
-  type: "sqlite"    
+  type: "hashmap"    
   db_name: "peers.db"     
-  run_schedule: False
-  cleanup_at: "3:07"
+  run_schedule: True
+  cleanup_at: "10:21"
   remove_older_than: "1 day"
   remove_older_than_secs: 86400
