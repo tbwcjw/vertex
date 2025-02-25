@@ -7,6 +7,10 @@
 
 - Make peer_id's hexidecimal
 
+- Interval/Min Interval based on system load/connections? 
+
+- Model UDP request/responses
+
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:
     - If the client is a **seeder** → Return peers with **incomplete clients**.

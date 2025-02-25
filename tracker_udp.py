@@ -104,7 +104,9 @@ class UDPTracker:
         event = status_map.get(event)
 
         peers = db.get_peers(info_hash=info_hash)
-        if len(peers) < 1:
+        this_peer_exists = db.is_duplicate(peer_id, info_hash)
+
+        if this_peer_exists < 1:
             db.insert_peer(peer_id, 0, info_hash, addr[0], None, port, uploaded, downloaded, left, event, is_completed)
         else:
             db.update_peer(peer_id, 0, info_hash, is_completed, event, uploaded, downloaded, left)

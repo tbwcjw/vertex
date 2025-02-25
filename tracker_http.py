@@ -148,17 +148,19 @@ def announce():
     if PRIVATE and data.passkey != PASSKEY:
         return Response(bc.encode({"failure reason": "error private tracker, check passkey"}), mimetype='text/plain')
     
+    #
     peers = db.get_peers(info_hash=data.info_hash)
 
-    if len(peers) < 1:
+    this_peer_exists = db.is_duplicate(peer_id, info_hash)
+
+    if this_peer_exists < 1:
         db.insert_peer(data.peer_id, data.no_peer_id, data.info_hash, data.ipv4, data.ipv6, data.port, data.uploaded, data.downloaded, data.left, data.event, is_completed)
     else:
-        print('UPDATING PEER')
         db.update_peer(data.peer_id, data.no_peer_id, data.info_hash, is_completed, data.event, data.uploaded, data.downloaded, data.left)
     
     if data.compact:
         compact = b""
-        peers = db.get_peers_for_response(info_hash, data.numwant)
+        peers = db.get_peers_for_response(info_hash, data.numwant, data.peer_id)
         for peer in peers.values():
             ip = peer["ip"]
             port = peer["port"]
@@ -181,9 +183,10 @@ def announce():
             min_interval = MIN_INTERVAL,
             completed = db.get_seeder_count(info_hash=data.info_hash),
             incomplete = db.get_leecher_count(info_hash=data.info_hash),
-            peers = db.get_peers_for_response(info_hash, data.numwant), # dictionary model
+            peers = db.get_peers_for_response(info_hash, data.numwant, data.peer_id), # dictionary model
             tracker_id= TRACKER_ID
         )
+        print(response.peers)
 
     end_time = time.time()
     elapsed = end_time - start_time

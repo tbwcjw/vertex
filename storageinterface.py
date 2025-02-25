@@ -25,3 +25,6 @@ class StorageInterface(ABC):
     @abstractmethod
     def fullscrape(self):
         pass
+    @abstractmethod
+    def is_duplicate(self):
+        pass

@@ -68,17 +68,30 @@ class Database(StorageInterface):
             result = [row[0] for row in cursor.fetchall()]
         return result
     
-    def get_peers_for_response(self, info_hash, numwant):
+    def get_peers_for_response(self, info_hash, numwant, peer_id):
         with self.conn:
             cursor = self.conn.cursor()
-            cursor.execute('''SELECT CASE WHEN no_peer_id = 1 THEN '' ELSE peer_id END AS peer_id, COALESCE(ipv4, ipv6) AS ip, port FROM peers  WHERE info_hash = ? LIMIT ?;''', (info_hash, numwant))
+            cursor.execute('''SELECT peer_id, no_peer_id, COALESCE(ipv4, ipv6) AS ip, port FROM peers WHERE info_hash = ? AND peer_id != ? LIMIT ?''', (info_hash, peer_id, numwant,))
+            
             result = cursor.fetchall()
-        return {row[0]: {"ip": row[1], "port": row[2]} for row in result}
+            
+            return {
+                (row['peer_id'] if not row['no_peer_id'] else f"anon_{index}"): 
+                {"ip": row['ip'], "port": row['port']} 
+                for index, row in enumerate(result)
+            }
     
     def insert_peer(self, peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_complete):
         with self.conn:
             self.conn.execute("INSERT INTO peers (peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_completed) VALUES (?,?,?,?,?,?,?,?,?,?,?)", (peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_complete))
 
+    def is_duplicate(self, peer_id, info_hash):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM peers WHERE peer_id = ? AND info_hash = ?", (peer_id, info_hash,))
+            result = cursor.fetchone()[0]
+            return result
+        
     def update_peer(self, peer_id, no_peer_id, info_hash, is_complete, last_event, uploaded, downloaded, left):
         try:
             with self.conn:

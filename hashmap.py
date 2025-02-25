@@ -48,6 +48,9 @@ class Hashmap(StorageInterface):
     def get_seeder_count(self, info_hash):
         return sum(1 for peer in self.peers.values() if peer["info_hash"] == info_hash and peer["is_completed"])
 
+    def is_duplicate(self, peer_id, info_hash):
+        return (peer_id, info_hash) in self.peers
+
     def get_leecher_count(self, info_hash):
         return sum(1 for peer in self.peers.values() if peer["info_hash"] == info_hash and not peer["is_completed"])
 
@@ -57,11 +60,12 @@ class Hashmap(StorageInterface):
     def fullscrape(self):
         return [peer['info_hash'] for peer in self.peers.values()]
     
-    def get_peers_for_response(self, info_hash, numwant):
+    def get_peers_for_response(self, info_hash, numwant, peer_id):
         peers = {
-            peer["peer_id"] if not peer.get("no_peer_id", 0) else "": 
+            (peer["peer_id"] if not peer.get("no_peer_id", 0) else f"anonymous_{index}"): 
             {"ip": peer["ip"], "port": peer["port"]}
-            for peer in self.peers.values() if peer["info_hash"] == info_hash
+            for index, peer in enumerate(self.peers.values()) 
+            if peer["info_hash"] == info_hash and peer["peer_id"] != peer_id
         }
         return dict(islice(peers.items(), numwant))
 
