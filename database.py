@@ -40,17 +40,52 @@ class Database(StorageInterface):
         ''')
         self.conn.commit()
 
+    def get_unique_infohash_count(self):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT COUNT(DISTINCT info_hash) AS unique_count FROM peers")
+            count = cursor.fetchone()[0]
+        return count
+    
+    def get_all_peer_count(self):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM peers")
+            count = cursor.fetchone()[0]
+        return count
+    
+    def get_all_seeder_count(self):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM peers WHERE is_completed = 1 AND last_event != 'stopped'")
+            count = cursor.fetchone()[0]
+        return count
+    
+    def get_all_event_counts(self):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT last_event, COUNT(*) FROM peers WHERE last_event in ('started', 'stopped', 'completed') GROUP BY last_event")
+            result = dict(cursor.fetchall())
+        return result
+    
+    def get_all_leecher_count(self):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM peers WHERE is_completed = 0 AND last_event != 'stopped'")
+            count = cursor.fetchone()[0]
+        return count
+    
     def get_seeder_count(self, info_hash):
-            with self.conn:
-                cursor = self.conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM peers WHERE info_hash = ? AND is_completed = true", (info_hash,))
-                count = cursor.fetchone()[0]
-            return count
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM peers WHERE info_hash = ? AND is_completed = 1", (info_hash,))
+            count = cursor.fetchone()[0]
+        return count
         
     def get_leecher_count(self, info_hash):
         with self.conn:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT COUNT(*) FROM peers WHERE info_hash = ? AND is_completed = false", (info_hash,))
+            cursor.execute("SELECT COUNT(*) FROM peers WHERE info_hash = ? AND is_completed = 0", (info_hash,))
             count = cursor.fetchone()[0]
         return count
     

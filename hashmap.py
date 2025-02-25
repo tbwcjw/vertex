@@ -31,6 +31,27 @@ class Hashmap(StorageInterface):
         }
         self.peers[peer_key] = peer_data
         self.info_hash_index[info_hash].add(peer_id)
+        print("INFO HASH INDEX " + dict(self.info_hash_index).__str__())
+
+    #this doesn't work? figure out why next
+    def get_unique_infohash_count(self):
+        return len(self.info_hash_index)
+    
+    def get_all_peer_count(self):
+        return len(self.peers)
+
+    def get_all_seeder_count(self):
+        return sum(1 for peer in self.peers.values() if peer["is_completed"] and peer["last_event"] != "stopped")
+
+    def get_all_leecher_count(self):
+        return sum(1 for peer in self.peers.values() if not peer["is_completed"] and peer["last_event"] != "stopped")
+
+    def get_all_event_counts(self):
+        event_counts = defaultdict(int)
+        for peer in self.peers.values():
+            if peer["last_event"] in ("started", "stopped", "completed"):
+                event_counts[peer["last_event"]] += 1
+        return dict(event_counts)
 
     def update_peer(self, peer_id, no_peer_id, info_hash, is_complete, last_event, uploaded, downloaded, left):
         peer_key = (peer_id, info_hash)

@@ -28,3 +28,17 @@ class StorageInterface(ABC):
     @abstractmethod
     def is_duplicate(self):
         pass
+    @abstractmethod
+    def get_unique_infohash_count(self):
+        pass
+    @abstractmethod
+    def get_all_peer_count(self):
+        pass
+    @abstractmethod
+    def get_all_seeder_count(self):
+        pass
+    @abstractmethod
+    def get_all_event_counts(self):
+        pass
+    def get_all_leecher_count(self):
+        pass

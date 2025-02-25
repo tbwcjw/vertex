@@ -73,7 +73,7 @@ udp:
 #     this is for hashmap type, not sqlite
 #     removes peers that haven't been updated by this threshold
 storage:
-  type: "sqlite"    
+  type: "hashmap"    
   db_name: "peers.db"     
   run_schedule: True
   cleanup_at: "10:21"

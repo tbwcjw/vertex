@@ -17,7 +17,7 @@ from configloader import ConfigLoader
 
 from models import Announce, AnnounceResponse, ScrapeResponse, ScrapeResult
 
-from stats import stats_bp
+from stats import stats_bp, conn_stats
 
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
@@ -34,29 +34,43 @@ MIN_INTERVAL = config.get('tracker.min_interval')
 MIN_SCRAPE_INTERAL = config.get('tracker.min_scrape_interval')
 TRACKER_ID = config.get('tracker.tracker_id')
 
+@app.before_request
+def rx_stats():
+    conn_stats.update(key="http requests", value=1)
+    conn_stats.update(key="rx size", value=len(request.url))
+    return
+
+@app.after_request
+def tx_stats(response):
+    conn_stats.update(key="http responses", value=1)
+    conn_stats.update(key="tx size", value=len(response.data))
+    return response
+
 @app.errorhandler(ValidationError)
 def handle_validation_error(error):
     errors = [{"loc": err['loc'], "msg": err['msg']} for err in error.errors()]
     result = ", ".join(f"{err['loc']}: {err['msg']}" for err in errors)
 
+    conn_stats.update(key="announce fail", value=1)
     return Response(bc.encode({"failure reason": result}), mimetype='text/plain')
 
 @app.route("/scrape", methods=["GET"])
 def scrape():
     info_hashes = request.args.getlist('info_hash')
-    type = request.args.get('type')
     results = {} 
     #fullscrape
     if not info_hashes:  
         if config.get('tracker.fullscrape'):  
             info_hashes = db.fullscrape()  
         else:  
+            conn_stats.update(key="scrape fail", value=1)
             return Response(bc.encode({"failure reason": "fullscrape not enabled"}), mimetype='text/plain')
 
     for info_hash in info_hashes:
         #TODO: decode encoded hashes
         result = db.get_peers(info_hash)
         if len(result) < 1:
+            conn_stats.update(key="scrape fail", value=1)
             return Response(bc.encode({"failure reason": f"info_hash {info_hash} not found"}), mimetype='text/plain')
 
         complete = 0
@@ -79,8 +93,8 @@ def scrape():
         flags={'min_request_interval': MIN_SCRAPE_INTERAL},
         files=results
     )
-    if type == 'json':
-        return jsonify(results), 200
+    
+    conn_stats.update(key="scrape success", value=1)
     return Response(bc.encode(response_data.dict()), mimetype='text/plain')
 
 
@@ -148,6 +162,7 @@ def announce():
     print(data.model_dump())
     
     if PRIVATE and data.passkey != PASSKEY:
+        conn_stats.update(key="announce fail", value=1)
         return Response(bc.encode({"failure reason": "error private tracker, check passkey"}), mimetype='text/plain')
     
     #
@@ -193,4 +208,5 @@ def announce():
     end_time = time.time()
     elapsed = end_time - start_time
     print(f"elapsed time: {elapsed}")
+    conn_stats.update(key="announce success", value=1)
     return Response(bc.encode(response.dict()), mimetype='text/plain')
