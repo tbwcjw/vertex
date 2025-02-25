@@ -1,12 +1,6 @@
 # To-Do List
 
 ## Short Term
-- Fix insert peer logic. should insert new peers, right now it is looking for
-  infohash, and updating if it finds the infohash. only one peer per torrent
-  is inserted right now.
-
-- Make peer_id's hexidecimal
-
 - Interval/Min Interval based on system load/connections? 
 
 - Model UDP request/responses

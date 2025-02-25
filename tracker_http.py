@@ -17,13 +17,14 @@ from configloader import ConfigLoader
 
 from models import Announce, AnnounceResponse, ScrapeResponse, ScrapeResult
 
-import schedule
+from stats import stats_bp
 
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 bc = Bencoding
 
 app = Flask(__name__)
+app.register_blueprint(stats_bp)
 
 PRIVATE = config.get('tracker.private')
 PASSKEY = config.get('tracker.passkey')
@@ -116,6 +117,7 @@ def announce():
     compact = request.args.get('compact') == '1'
     peer_id = request.args.get('peer_id')
 
+    print(f"PEER ID {peer_id}")
     #clamp max_want
     num_want = min(int(request.args.get('numwant', 0)), MAX_NUM_WANT)
 

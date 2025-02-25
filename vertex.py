@@ -8,7 +8,6 @@ from configloader import ConfigLoader
 from storagemanager import StorageManager
 from tracker_udp import UDPTracker
 
-
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 

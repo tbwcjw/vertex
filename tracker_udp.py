@@ -60,6 +60,13 @@ class UDPTracker:
             data, addr = sock.recvfrom(1024)
             self.handle_packet(data, addr, sock.family)
 
+    def send_error(self, transaction_id, addr, error_message):
+        error_message_bytes = error_message.encode()
+        response = struct.pack("!II", ACTION_ERROR, transaction_id) + error_message_bytes
+        sock = self.server_ipv6 if addr[0].count(":") else self.server_ipv4
+        sock.sendto(response, addr)
+
+
     def handle_packet(self, data, addr, family):
         if len(data) < 16:
             print(f"invalid packet from {addr}")
@@ -76,24 +83,39 @@ class UDPTracker:
             self.handle_scrape(data, addr, is_ipv6)
 
     def handle_connect(self, data, addr, is_ipv6):
-
         print(f"connection {addr}: {data.hex()}")
+        if len(data) < 16:
+            self.send_error(0, addr, "Invalid packet size for connect request.")
+            return
         transaction_id = struct.unpack_from(">I", data, 12)[0]
+        protocol_id = struct.unpack_from(">Q", data, 0)[0]
+        if protocol_id != MAGIC_CONN_ID:
+            self.send_error(transaction_id, addr, "Invalid protocol ID.")
+            return
+
         connection_id = random.randint(0, 0xFFFFFFFFFFFFFFFF)
         response = struct.pack(">IIQ", ACTION_CONNECT, transaction_id, connection_id)
         sock = self.server_ipv6 if is_ipv6 else self.server_ipv4
         sock.sendto(response, addr)
 
     def handle_announce(self, data, addr, is_ipv6):
+        if len(data) < 98: 
+            self.send_error(0, addr, "Invalid packet size for announce request.")
+            return
+        
         unpacked = struct.unpack(">QII20s20sQQQIIIiH", data[:98])
 
         print(f"handle announce {addr[0]}:{addr[1]}: {unpacked}")
 
         connection_id, action, transaction_id, info_hash, peer_id, downloaded, left, uploaded, event, ip, key, num_want, port = unpacked
-
+        
+        if action != ACTION_ANNOUNCE:
+            self.send_error(transaction_id, addr, "Invalid action in announce request.")
+            return
+        
         info_hash = info_hash.hex()
 
-        is_completed = 1 if left == 0 or event == 1 else 0
+        is_completed = 1 if left == 0 or event == EVENT_COMPLETED else 0
 
         status_map = {
             0: "",
@@ -111,22 +133,31 @@ class UDPTracker:
         else:
             db.update_peer(peer_id, 0, info_hash, is_completed, event, uploaded, downloaded, left)
 
-        peers = db.get_peers_for_response(info_hash, min(num_want, MAX_NUM_WANT))
+        peers = db.get_peers_for_response(info_hash, min(num_want, MAX_NUM_WANT), peer_id)
 
         compact_peers = b"".join([
             socket.inet_pton(socket.AF_INET6 if ':' in peer["ip"] else socket.AF_INET, peer["ip"]) + struct.pack(">H", peer["port"]) 
             for peer in peers.values()
         ])
-
+        print(f"announce response: {transaction_id} {INTERVAL} {len(peers)} {compact_peers}")
         response = struct.pack(">IIIII", ACTION_ANNOUNCE, transaction_id, INTERVAL, len(peers), 0) + compact_peers
         sock = self.server_ipv6 if is_ipv6 else self.server_ipv4
         sock.sendto(response, addr)
 
     def handle_scrape(self, data, addr, is_ipv6):
+        if len(data) < 16:  # Check if the packet is at least 16 bytes for scrape
+            self.send_error(0, addr, "Invalid packet size for scrape request.")
+            return
+
 
         print(f"handle announce {addr[0]}:{addr[1]}: {unpacked}")
         unpacked = struct.unpack(">QII", data[:16])
         connection_id, action, transaction_id = unpacked
+
+        if action != ACTION_SCRAPE:
+            self.send_error(transaction_id, addr, "Invalid action in scrape request.")
+            return
+
 
         info_hashes = [data[i:i+20].hex() for i in range(16, len(data), 20)]
 
