@@ -1,6 +1,7 @@
 # To-Do List
 
 ## Short Term
+- Make peer_id's hexidecimal
 
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:
@@ -23,8 +24,7 @@
   - Program version  
   - Release date  
   - Author  
-  - Registration info  
-
+  
 - **Connection Stats (`?mode=conn`)**
   - Total successful announces  
   - Total successful scrapes  

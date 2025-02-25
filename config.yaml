@@ -38,8 +38,22 @@ tracker:
 #   accepts ipv4 and ipv6 loopbacks (127.0.0.1/0.0.0.0 or :: ::1)
 # ip_port: <integer> default "6969"
 http:
+  server_enable: True
   ip_bind: "127.0.0.1"
   ip_port: 5000
+
+# udp
+# note: UDP implementation is not yet complete. ipv6 is untested.
+udp:
+  server_enable: True
+
+  ipv4_enable: True
+  ipv4_bind: "127.0.0.1"
+  ipv4_port: 5001
+
+  ipv6_enable: True
+  ipv6_bind: "::1"
+  ipv6_port: 5001
 
 # storage
 #   type: <string> hashmap|sqlite default: "hashmap"
@@ -58,7 +72,7 @@ http:
 #     this is for hashmap type, not sqlite
 #     removes peers that haven't been updated by this threshold
 storage:
-  type: "hashmap"    
+  type: "sqlite"    
   db_name: "peers.db"     
   run_schedule: False
   cleanup_at: "3:07"

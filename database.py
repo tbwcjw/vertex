@@ -80,10 +80,8 @@ class Database(StorageInterface):
             self.conn.execute("INSERT INTO peers (peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_completed) VALUES (?,?,?,?,?,?,?,?,?,?,?)", (peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_complete))
 
     def update_peer(self, peer_id, no_peer_id, info_hash, is_complete, last_event, uploaded, downloaded, left):
-        print(last_event)
         try:
             with self.conn:
-                print(f"LAST EVENT `{last_event}`")
                 if last_event == "" or last_event is None:
                     self.conn.execute("UPDATE peers SET no_peer_id = ?, is_completed = ?, last_updated = CURRENT_TIMESTAMP, uploaded = ?, downloaded = ?, left = ? WHERE info_hash = ? AND peer_id = ?", (no_peer_id, is_complete, uploaded, downloaded, left, info_hash, peer_id,))
                 else:

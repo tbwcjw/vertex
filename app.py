@@ -52,8 +52,8 @@ def scrape():
             return Response(bc.encode({"failure reason": "fullscrape not enabled"}), mimetype='text/plain')
 
     for info_hash in info_hashes:
-        decoded = decode_info_hash(info_hash)
-        result = db.get_peers(decoded)
+        #TODO: decode encoded hashes
+        result = db.get_peers(info_hash)
         if len(result) < 1:
             return Response(bc.encode({"failure reason": f"info_hash {info_hash} not found"}), mimetype='text/plain')
 
