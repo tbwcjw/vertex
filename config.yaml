@@ -130,7 +130,7 @@ stats:
 # log_file: <string> default "vertex.log"
 # log_format: <string> default "[{time}] - {level}: {module}.{function} - {message}"
 #   time: time.asctime()
-#   level: "INFO", "WARN", "ERROR", "DEBUG"
+#   level: "INFO", "WARN", "ERROR", "DEBUG" default "INFO"
 #   module: filename from which print/exception was called
 #   function: function from which print/exception was called
 #   message: print string or exception string

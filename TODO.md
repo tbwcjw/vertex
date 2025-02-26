@@ -6,6 +6,8 @@
 
 - Model UDP request/responses
 
+- Add log levels to each print string, maybe use an enum or something
+
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:
     - If the client is a **seeder** → Return peers with **incomplete clients**.
@@ -14,9 +16,6 @@
     - Use sorting/ordering to balance **superseeders, normal seeders, early-stage incompletes, and late-stage incompletes**.
 
 ## Mid Term
-
-- **Logging**
-  - Logging levels: error, warning, caution, info
 
 - **Rate-limiting**
   - Limit individual methods. Offenders get blacklisted.

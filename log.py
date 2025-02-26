@@ -46,7 +46,7 @@ class Log:
         while self.is_running:
             try:
                 log_string = self.log_queue.get(timeout=1)  
-                with open(self.log_file, 'a') as log_file:
+                with open(self.log_file, 'a', encoding='utf-8') as log_file:
                     log_file.write(log_string + '\n')
                 self.log_queue.task_done()
             except queue.Empty:
