@@ -1,5 +1,6 @@
 from database import Database
 from hashmap import Hashmap
+from log import Log
 
 class StorageManager:
     _instance = None

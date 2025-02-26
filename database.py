@@ -2,6 +2,7 @@ import sqlite3
 
 from storageinterface import StorageInterface
 from configloader import ConfigLoader
+from log import Log
 
 config = ConfigLoader()
 

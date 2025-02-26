@@ -9,6 +9,8 @@ from bencoding import Bencoding
 
 from stats import conn_stats
 
+from log import Log
+
 # Load Config
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))

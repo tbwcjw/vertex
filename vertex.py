@@ -8,6 +8,7 @@ from storagemanager import StorageManager
 from tracker_udp import UDPTracker
 from waitress import serve
 
+from log import Log
 
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))

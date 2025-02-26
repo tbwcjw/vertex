@@ -2,6 +2,7 @@ import re
 import itertools as it
 import time
 from typing import Any, Dict, List, Tuple, Union
+from log import Log
 
 # simple bencoding library with added (unofficial) support for floats and tuples.
 # tbwcjw 2025

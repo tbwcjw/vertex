@@ -17,6 +17,8 @@ from models import Announce, AnnounceResponse, ScrapeResponse, ScrapeResult
 
 from stats import stats_bp, conn_stats
 
+from log import Log
+
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 bc = Bencoding
@@ -50,6 +52,7 @@ def handle_validation_error(error):
     result = ", ".join(f"{err['loc']}: {err['msg']}" for err in errors)
 
     conn_stats.update(key="announce fail", value=1)
+    print(result, log_level="ERROR")
     return Response(bc.encode({"failure reason": result}), mimetype='text/plain')
 
 @app.route("/scrape", methods=["GET"])
@@ -195,7 +198,7 @@ def announce():
         )
     else:
         response = AnnounceResponse(
-            interval = INTERVAL,
+            interval = "FUCK",
             min_interval = MIN_INTERVAL,
             completed = db.get_seeder_count(info_hash=data.info_hash),
             incomplete = db.get_leecher_count(info_hash=data.info_hash),

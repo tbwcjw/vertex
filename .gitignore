@@ -3,3 +3,4 @@ __pycache__
 peers.db
 peers.db-shm
 peers.db-wal
+vertex.log
