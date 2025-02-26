@@ -3,6 +3,7 @@
 #
 
 # tracker
+#
 #   tracker_id: <string> default: "vertex"
 #     A string that the client should send back on its next announcements.
 #     If absent and a previous announce sent a tracker id, do not discard the old value; keep using it.
@@ -34,17 +35,27 @@ tracker:
 
 # http
 # 
+# server_enable: <bool> default True
+# threads: <int> default 1
+# number of threads wsgi will use
 # ip_bind: <string> default "127.0.0.1"
 #   accepts ipv4 and ipv6 loopbacks (127.0.0.1/0.0.0.0 or :: ::1)
 # ip_port: <integer> default "6969"
 http:
   server_enable: True
+  threads: 1
   ip_bind: "127.0.0.1"
   ip_port: 5000
 
 # udp
-# note: UDP implementation is not yet complete. ipv6 is untested.
-# udp cannot be private as per bittorrent specification.
+#
+# server_enable: <bool> default True
+# ipv4_enable: <bool> default True
+# ipv4_bind: <string> default "127.0.0.1"
+# ipv4_port: <integer> default 5001
+# ipv6_enable: <bool> default True
+# ipv6_bind: <string> default "::1"
+# ipv6_port: <integer> default 5002
 udp:
   server_enable: True
 
@@ -57,13 +68,14 @@ udp:
   ipv6_port: 5002
 
 # storage
+#
 #   type: <string> hashmap|sqlite default: "hashmap"
 #     sqlite3 database is far slower, but persistent.
 #     hashmap is faster, but volatile.
 #   db_name: <string> default "peers.db"
 #     this is for nonvolatile sqlite db only. allows pathing.
-#   run_schedule: <bool> default: False
-#     toggle scheduled tasks.
+#   cleanup_job: <bool> default: False
+#     toggle cleanup job.
 #   cleanup_at: <string> (HH:MM) default: "12:00"
 #     time of day to run the cleanup job
 #   remove_older_than: <string> (X month|week|day|hour|minute) default: "1 day"
@@ -75,14 +87,35 @@ udp:
 storage:
   type: "hashmap"    
   db_name: "peers.db"     
-  run_schedule: True
+  cleanup_job: True
   cleanup_at: "10:21"
   remove_older_than: "1 day"
   remove_older_than_secs: 86400
 
+# stats
+#
+# stats are accessible via http only.
+# stats_enabled: <boolean> default True
+#   enables or disables the stats route
+# everything_enabled: <boolean> default True
+#   enables ?mode=everything, returning stats from all other modes
+#     ?mode=version
+#     ?mode=config
+#     ?mode=conn
+#     ?mode=tor
+# version_enabled: <boolean> default True "?mode=version"
+#   returns information about the build of vertext and packages installed in venv.
+# config_enabled: <boolean> default True "?mode=config"
+#   returns the config yaml as text
+# torr_enabled: <boolean> default True "?mode=torr"
+#   returns counts of unique infohashes, peers, seeders, leechers, event statuses
+# conn_enabled: <boolean> default True "?mode=conn"
+#   returns announce/scrape success fails, http request/response counts, tx/rx sizes.
+#   udp connect success/fails
 stats:
   stats_enabled: True
   everything_enabled: True
   version_enabled: True
+  config_enabled: True
   conn_enabled: True
   torr_enabled: True

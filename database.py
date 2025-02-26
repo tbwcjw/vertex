@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import sqlite3
-import time
-import logging
 
 from storageinterface import StorageInterface
 from configloader import ConfigLoader

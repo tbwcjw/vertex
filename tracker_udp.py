@@ -50,7 +50,7 @@ class UDPTracker:
         threads = []
         for sock in self.sockets:
             thread_name = "tracker_udp_ipv6" if sock.family == socket.AF_INET6 else "tracker_udp_ipv4"
-            thread = threading.Thread(target=self.listen, args=(sock,), name=thread_name)
+            thread = threading.Thread(target=self.listen, args=(sock,), name=f"{thread_name}")
             threads.append(thread)
             thread.start()
 

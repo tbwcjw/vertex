@@ -1,4 +1,3 @@
-from multiprocessing import Process
 from tracker_http import app
 from threading import Thread
 import time
@@ -7,13 +6,23 @@ import schedule
 from configloader import ConfigLoader
 from storagemanager import StorageManager
 from tracker_udp import UDPTracker
+from waitress import serve
+
 
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 
 def run_schedule():
-    schedule.every().day.at(config.get('storage.cleanup_at')).do(db.cleanup_peers)
+    if config.get('storage.cleanup_job'):
+        schedule.every().day.at(config.get('storage.cleanup_at')).do(db.cleanup_peers)
     
+    jobs = schedule.get_jobs()
+    if jobs:
+        for job in jobs:
+            print(f"Scheduled Job: {job.job_func.__name__}, Interval: {job.interval} {job.unit}, Next Run: {job.next_run}")
+    else:
+        print(f"Scheduler didn't find any jobs")
+
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -27,12 +36,12 @@ def run_udp():
     udp_tracker.run()
 
 def run_http():
-    app.run(host=config.get('http.ip_bind'), port=config.get('http.ip_port'), threaded=True)
+    print(f"HTTP Tracker started on: {config.get('http.ip_bind')}:{config.get('http.ip_port')}")
+    serve(app, host=config.get('http.ip_bind'), port=config.get('http.ip_port'), threads=config.get('http.threads'))
      
 if __name__ == "__main__":
-    if config.get('storage.run_schedule'):
-        scheduler_thread = Thread(target=run_schedule, name="scheduler")
-        scheduler_thread.start()
+    scheduler_thread = Thread(target=run_schedule, name="scheduler")
+    scheduler_thread.start()
     if config.get('http.server_enable'):
         http_process = Thread(target=run_http, name="tracker_http")
         http_process.start()

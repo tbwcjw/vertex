@@ -40,5 +40,6 @@ class StorageInterface(ABC):
     @abstractmethod
     def get_all_event_counts(self):
         pass
+    @abstractmethod
     def get_all_leecher_count(self):
         pass

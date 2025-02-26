@@ -1,5 +1,4 @@
-import time
-from flask import Flask, Blueprint, Response, jsonify
+from flask import Blueprint, Response, jsonify
 from configloader import ConfigLoader
 import pkg_resources
 
@@ -68,9 +67,13 @@ def handle_stats():
         return Response("invalid mode", mimetype='text/plain')
 
 def handle_config():
+    if not config.get('stats.config_enabled'):
+        return Response("mode disabled", mimetype='text/plain')
     return Response(config.all_items_as_string(), mimetype='text/plain')
 
 def handle_torr():
+    if not config.get('stats.torr_enabled'):
+        return Response("mode disabled", mimetype='text/plain')
     total_unique_info_hashes = db.get_unique_infohash_count()
     all_peer_count = db.get_all_peer_count()
     all_seeder_count = db.get_all_seeder_count()
@@ -82,17 +85,21 @@ def handle_torr():
     return Response(f"unique infohashes: {total_unique_info_hashes}\nall peers: {all_peer_count}\nall seeders: {all_seeder_count}\nall leechers: {all_leecher_count}\nstarted: {started}\nstopped: {stopped}\ncompleted: {completed}", mimetype='text/plain')
 
 def handle_conn():
+    if not config.get('stats.conn_enabled'):
+        return Response("mode disabled", mimetype='text/plain')
     total_requests = conn_stats.get()
     return Response("\n".join(f"{k}: {v}" for k, v in total_requests.items()), mimetype='text/plain')
 
 def handle_version():
     if not config.get('stats.version_enabled'):
-        return jsonify({"error": "Version information is disabled."}), 403
+        return Response("mode disabled", mimetype='text/plain')
     
     version_string = f"{__title__} - {__author__} <{__email__}> - {__license__} license\n\npackages:\n" + '\n'.join(f"{package.project_name}: {package.version}" for package in pkg_resources.working_set)
     return Response(version_string, mimetype='text/plain')
 
 def handle_everything():
+    if not config.get('stats.everything_enabled'):
+        return Response("mode disabled", mimetype='text/plain')
     conn_status = handle_conn().get_data(as_text=True)
     version_info = handle_version().get_data(as_text=True)
     config_info = handle_config().get_data(as_text=True)

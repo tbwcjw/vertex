@@ -1,14 +1,12 @@
 import socket
 import struct
-import sys
-from threading import Thread
 import time
 
 import urllib
 
 from pydantic import ValidationError
 from bencoding import Bencoding
-from flask import Flask, json, jsonify, request, Response, g
+from flask import Flask, request, Response, g
 import ipaddress
 
 from bencoding import Bencoding
@@ -165,7 +163,7 @@ def announce():
         conn_stats.update(key="announce fail", value=1)
         return Response(bc.encode({"failure reason": "error private tracker, check passkey"}), mimetype='text/plain')
     
-    #
+
     peers = db.get_peers(info_hash=data.info_hash)
 
     this_peer_exists = db.is_duplicate(peer_id, info_hash)
@@ -174,7 +172,8 @@ def announce():
         db.insert_peer(data.peer_id, data.no_peer_id, data.info_hash, data.ipv4, data.ipv6, data.port, data.uploaded, data.downloaded, data.left, data.event, is_completed)
     else:
         db.update_peer(data.peer_id, data.no_peer_id, data.info_hash, is_completed, data.event, data.uploaded, data.downloaded, data.left)
-    
+
+
     if data.compact:
         compact = b""
         peers = db.get_peers_for_response(info_hash, data.numwant, data.peer_id)
