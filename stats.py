@@ -5,10 +5,8 @@ import pkg_resources
 from storagemanager import StorageManager
 from log import Log
 
-# Create a Blueprint for stats
 stats_bp = Blueprint('stats', __name__)
 
-# Metadata
 __title__ = "vertex"
 __author__ = "tbwcjw"
 __email__ = "me@tbwcjw.online"

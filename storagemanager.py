@@ -1,5 +1,5 @@
-from database import Database
-from hashmap import Hashmap
+from database import sqlite_instance
+from hashmap import hashmap_instance
 from log import Log
 
 class StorageManager:
@@ -19,9 +19,9 @@ class StorageManager:
 
     def set_storage(self, storage_type):
         if storage_type == "sqlite":
-            self.storage = Database()
+            self.storage = sqlite_instance
         elif storage_type == "hashmap":
-            self.storage = Hashmap()
+            self.storage = hashmap_instance
         else:
             raise NotImplementedError("Storage type not implemented")
         

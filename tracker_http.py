@@ -17,7 +17,7 @@ from models import Announce, AnnounceResponse, ScrapeResponse, ScrapeResult
 
 from stats import stats_bp, conn_stats
 
-from log import Log
+from log import Log, LogLevel
 
 config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
@@ -58,8 +58,9 @@ def handle_validation_error(error):
 @app.route("/scrape", methods=["GET"])
 def scrape():
     info_hashes = request.args.getlist('info_hash')
-    results = {} 
-    #fullscrape
+    results = {}
+
+    # fullscrape
     if not info_hashes:  
         if config.get('tracker.fullscrape'):  
             info_hashes = db.fullscrape()  
@@ -68,8 +69,8 @@ def scrape():
             return Response(bc.encode({"failure reason": "fullscrape not enabled"}), mimetype='text/plain')
 
     for info_hash in info_hashes:
-        #TODO: decode encoded hashes
         result = db.get_peers(info_hash)
+        print(result)
         if len(result) < 1:
             conn_stats.update(key="scrape fail", value=1)
             return Response(bc.encode({"failure reason": f"info_hash {info_hash} not found"}), mimetype='text/plain')
@@ -80,7 +81,7 @@ def scrape():
 
         for res in result:
             complete += res['is_completed']
-            if res['last_event'] == "completed" or res['is_completed'] and res['left'] < 1:
+            if res['last_event'] == "completed" or (res['is_completed'] and res['left'] < 1):
                 downloaded += 1
             if not res['is_completed'] or res["left"] > 0:
                 incomplete += 1
@@ -90,13 +91,19 @@ def scrape():
             downloaded=downloaded,
             incomplete=incomplete
         )
-        response_data = ScrapeResponse(
+
+    if not results: 
+        conn_stats.update(key="scrape fail", value=1)
+        return Response(bc.encode({"failure reason": "no valid info_hashes found"}), mimetype='text/plain')
+
+    response_data = ScrapeResponse(
         flags={'min_request_interval': MIN_SCRAPE_INTERAL},
         files=results
     )
-    
+
     conn_stats.update(key="scrape success", value=1)
     return Response(bc.encode(response_data.dict()), mimetype='text/plain')
+
 
 
 #decode infohash from client
@@ -132,7 +139,7 @@ def announce():
     compact = request.args.get('compact') == '1'
     peer_id = request.args.get('peer_id')
 
-    print(f"PEER ID {peer_id}")
+    print(f"PEER ID {peer_id}",log_level=LogLevel.DEBUG)
     #clamp max_want
     num_want = min(int(request.args.get('numwant', 0)), MAX_NUM_WANT)
 
@@ -198,7 +205,7 @@ def announce():
         )
     else:
         response = AnnounceResponse(
-            interval = "FUCK",
+            interval = INTERVAL,
             min_interval = MIN_INTERVAL,
             completed = db.get_seeder_count(info_hash=data.info_hash),
             incomplete = db.get_leecher_count(info_hash=data.info_hash),
@@ -209,6 +216,6 @@ def announce():
 
     end_time = time.time()
     elapsed = end_time - start_time
-    print(f"elapsed time: {elapsed}")
+    print(f"elapsed time: {elapsed}", log_level=LogLevel.DEBUG)
     conn_stats.update(key="announce success", value=1)
     return Response(bc.encode(response.dict()), mimetype='text/plain')

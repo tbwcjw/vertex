@@ -6,17 +6,15 @@ from log import Log
 
 config = ConfigLoader()
 
-OLDER_THAN = f"-{config.get('remove_older_than')}"
-
-
 class Database(StorageInterface):
     def __init__(self, db_name=config.get('storage.db_name')):
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
+        self.older_than = f"-{config.get('remove_older_than')}"
         self.cursor = self.conn.cursor()
         self.cursor.execute('PRAGMA journal_mode=WAL;') 
         self.create_tables()
-
+    
     def create_tables(self):
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS peers (
@@ -136,5 +134,8 @@ class Database(StorageInterface):
     def cleanup_peers(self):
         with self.conn:
             cursor = self.conn.cursor()
-            cursor.execute(f"DELETE FROM peers WHERE last_updated < datetime('now', '{OLDER_THAN}')")
+            cursor.execute(f"DELETE FROM peers WHERE last_updated < datetime('now', '{self.older_than}')")
             print(f"Cleaned up peers removed {cursor.rowcount} peer entries")
+
+#singleton
+sqlite_instance = Database()

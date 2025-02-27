@@ -6,7 +6,7 @@
 
 - Model UDP request/responses
 
-- Add log levels to each print string, maybe use an enum or something
+- Figure out why keyboardinterrupts dont work
 
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:

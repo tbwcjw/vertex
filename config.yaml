@@ -31,7 +31,7 @@ tracker:
   interval: 120
   min_interval: 10
   min_scrape_interval: 100
-  fullscrape: False
+  fullscrape: True
 
 # http
 # 
@@ -126,7 +126,9 @@ stats:
 # strings. we can also save stdout + stderr to file. runs on
 # separate thread.
 # write_log: <boolean> default: True
-#   write stdout and stderr to files.
+#   write stdout and stderr to log file.
+# print_log: <boolean> default: True
+#   print stdout and stderr to stdout.
 # log_file: <string> default "vertex.log"
 # log_format: <string> default "[{time}] - {level}: {module}.{function} - {message}"
 #   time: time.asctime()
@@ -136,5 +138,6 @@ stats:
 #   message: print string or exception string
 log:
   write_log: True
+  print_log: True
   log_file: "vertex.log"
   log_format: '[{time}] - {level}: {module}.{function} - {message}'

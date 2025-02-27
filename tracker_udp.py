@@ -9,7 +9,7 @@ from bencoding import Bencoding
 
 from stats import conn_stats
 
-from log import Log
+from log import LogLevel
 
 # Load Config
 config = ConfigLoader()
@@ -28,14 +28,13 @@ EVENT_COMPLETED = 1
 EVENT_STARTED = 2
 EVENT_STOPPED = 3
 
-INTERVAL = config.get('tracker.interval')
-MIN_INTERVAL = config.get('tracker.min_interval')
-TRACKER_ID = config.get('tracker.tracker_id')
-MAX_NUM_WANT = config.get('tracker.max_num_want')
+
 
 class UDPTracker:
     def __init__(self, ipv4_ip="127.0.0.1", ipv4_port=6970, ipv6_ip="::", ipv6_port=6971):
         self.sockets = []
+        self.interval = config.get('tracker.interval')
+        self.max_num_want = config.get('tracker.max_num_want')
         if config.get('udp.ipv4_enable'):
             self.server_ipv4 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.server_ipv4.bind((ipv4_ip, ipv4_port))
@@ -89,7 +88,7 @@ class UDPTracker:
             self.handle_scrape(data, addr, is_ipv6)
 
     def handle_connect(self, data, addr, is_ipv6):
-        print(f"connection {addr}: {data.hex()}")
+        print(f"connection {addr}: {data.hex()}", log_level=LogLevel.DEBUG)
         if len(data) < 16:
             conn_stats.update("rx size", value=len(data))
             conn_stats.update("udp connect fail", value=1)
@@ -144,21 +143,21 @@ class UDPTracker:
         this_peer_exists = db.is_duplicate(peer_id, info_hash)
 
         if this_peer_exists < 1:
-            print("INSERTED")
+            print("INSERTED", log_level=LogLevel.DEBUG)
             db.insert_peer(peer_id, 0, info_hash, addr[0], None, port, uploaded, downloaded, left, event, is_completed)
         else:
             print("UPDATED")
             db.update_peer(peer_id, 0, info_hash, is_completed, event, uploaded, downloaded, left)
 
-        peers = db.get_peers_for_response(info_hash, min(num_want, MAX_NUM_WANT), peer_id)
+        peers = db.get_peers_for_response(info_hash, min(num_want, self.max_num_want), peer_id)
 
         compact_peers = b"".join([
             socket.inet_pton(socket.AF_INET6 if ':' in peer["ip"] else socket.AF_INET, peer["ip"]) + struct.pack(">H", peer["port"]) 
             for peer in peers.values()
         ])
 
-        print(f"announce response: {transaction_id} {INTERVAL} {len(peers)} {compact_peers}")
-        response = struct.pack(">IIIII", ACTION_ANNOUNCE, transaction_id, INTERVAL, len(peers), 0) + compact_peers
+        print(f"announce response: {transaction_id} {self.interval} {len(peers)} {compact_peers}")
+        response = struct.pack(">IIIII", ACTION_ANNOUNCE, transaction_id, self.interval, len(peers), 0) + compact_peers
         sock = self.server_ipv6 if is_ipv6 else self.server_ipv4
         conn_stats.update("rx size", value=len(data))
         conn_stats.update("tx size", len(response))

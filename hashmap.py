@@ -6,13 +6,12 @@ from storageinterface import StorageInterface
 from configloader import ConfigLoader
 
 config = ConfigLoader()
-CLEANUP_TIME = config.get('storage.remove_older_than_secs')  
-
 
 class Hashmap(StorageInterface):
     def __init__(self):
         self.peers = {}  
         self.info_hash_index = defaultdict(set)  
+        self.cleanup_time = config.get('storage.remove_older_than_secs')  
 
     def insert_peer(self, peer_id, no_peer_id, info_hash, ipv4, ipv6, port, uploaded, downloaded, left, last_event, is_complete):
         peer_key = (peer_id, info_hash)
@@ -33,7 +32,6 @@ class Hashmap(StorageInterface):
         self.info_hash_index[info_hash].add(peer_id)
         print("INFO HASH INDEX " + dict(self.info_hash_index).__str__())
 
-    #this doesn't work? figure out why next
     def get_unique_infohash_count(self):
         return len(self.info_hash_index)
     
@@ -76,6 +74,7 @@ class Hashmap(StorageInterface):
         return sum(1 for peer in self.peers.values() if peer["info_hash"] == info_hash and not peer["is_completed"])
 
     def get_peers(self, info_hash):
+        print(len(self.peers))
         return [peer for peer in self.peers.values() if peer["info_hash"] == info_hash]
 
     def fullscrape(self):
@@ -95,7 +94,7 @@ class Hashmap(StorageInterface):
         removed_count = 0
         to_remove = [
             key for key, peer in self.peers.items()
-            if current_time - peer["last_updated"] > CLEANUP_TIME
+            if current_time - peer["last_updated"] > self.cleanup_time
         ]
 
         for key in to_remove:
@@ -105,3 +104,6 @@ class Hashmap(StorageInterface):
             removed_count += 1
 
         return {"deleted_peers": removed_count}
+
+#singleton instance
+hashmap_instance = Hashmap()
