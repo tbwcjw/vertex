@@ -8,6 +8,7 @@
 
 - Figure out why keyboardinterrupts dont work
 
+
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:
     - If the client is a **seeder** → Return peers with **incomplete clients**.

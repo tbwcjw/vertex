@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from log import Log
 
 class StorageInterface(ABC):
     @abstractmethod

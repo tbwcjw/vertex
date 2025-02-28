@@ -1,3 +1,4 @@
+import re
 import socket
 import struct
 import time
@@ -11,15 +12,14 @@ import ipaddress
 
 from bencoding import Bencoding
 from storagemanager import StorageManager
-from configloader import ConfigLoader
+from configloader import config
 
 from models import Announce, AnnounceResponse, ScrapeResponse, ScrapeResult
 
 from stats import stats_bp, conn_stats
 
-from log import Log, LogLevel
+from log import LogLevel
 
-config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 bc = Bencoding
 
@@ -47,6 +47,7 @@ def tx_stats(response):
     return response
 
 @app.errorhandler(ValidationError)
+#enforcing base models
 def handle_validation_error(error):
     errors = [{"loc": err['loc'], "msg": err['msg']} for err in error.errors()]
     result = ", ".join(f"{err['loc']}: {err['msg']}" for err in errors)
@@ -57,24 +58,28 @@ def handle_validation_error(error):
 
 @app.route("/scrape", methods=["GET"])
 def scrape():
+    #we take info hashes from args, if not givne, we go to fullscrape
     info_hashes = request.args.getlist('info_hash')
     results = {}
 
-    # fullscrape
+    # fullscrape mode
     if not info_hashes:  
         if config.get('tracker.fullscrape'):  
-            info_hashes = db.fullscrape()  
+            info_hashes = db.fullscrape() 
         else:  
             conn_stats.update(key="scrape fail", value=1)
             return Response(bc.encode({"failure reason": "fullscrape not enabled"}), mimetype='text/plain')
+    else:
+        #decode info hashes from args
+        info_hashes = [decode_info_hash(h) for h in info_hashes]
 
     for info_hash in info_hashes:
         result = db.get_peers(info_hash)
-        print(result)
         if len(result) < 1:
             conn_stats.update(key="scrape fail", value=1)
             return Response(bc.encode({"failure reason": f"info_hash {info_hash} not found"}), mimetype='text/plain')
 
+        #compile results of scrape
         complete = 0
         downloaded = 0
         incomplete = 0
@@ -104,11 +109,17 @@ def scrape():
     conn_stats.update(key="scrape success", value=1)
     return Response(bc.encode(response_data.dict()), mimetype='text/plain')
 
-
-
-#decode infohash from client
+#decode infohash from client if encoded. some aren't so we handle those too
 def decode_info_hash(string):
-    return urllib.parse.unquote_to_bytes(string).hex()
+    try:
+        decoded = urllib.parse.unquote_to_bytes(string).hex()
+        if re.fullmatch(r'[0-9a-f]+', decoded): 
+            return decoded
+    except (ValueError, TypeError):
+        print(f"couldn't decode {string}", log_level=LogLevel.DEBUG)
+        pass 
+
+    return string
 
 #network byte order ip+port for compact string
 def pack_ip_port(ip, port):
@@ -128,13 +139,12 @@ def announce():
         ipv4port = None
         ipv6port = request.args.get('port')
         client_ip = None
-        print(f"client is ipv6")
+        print(f"client is ipv6", log_level=LogLevel.DEBUG)
     else:
         ipv4port = request.args.get('port')
         ipv6port = None
         client_ipv6 = None
-        print(f"client is ipv4")
-    print(request.url)
+        print(f"client is ipv4", log_level=LogLevel.DEBUG)
 
     compact = request.args.get('compact') == '1'
     peer_id = request.args.get('peer_id')
@@ -159,7 +169,8 @@ def announce():
         downloaded = request.args.get('downloaded', 0),
         uploaded = request.args.get('uploaded', 0),
         left = request.args.get('left', 0),
-        passkey = request.args.get('passkey'),          #todo, find spec for 
+        #this would be passed with /announce?passkey=X
+        passkey = request.args.get('passkey'),          
         event = request.args.get('event'),
         numwant = num_want,
         compact = request.args.get('compact')
@@ -167,15 +178,17 @@ def announce():
 
     is_completed = 1 if data.left == 0 or data.event == "completed" else 0
 
-    print(data.model_dump())
+    print(data.model_dump(), log_level=LogLevel.DEBUG)
     
     if PRIVATE and data.passkey != PASSKEY:
         conn_stats.update(key="announce fail", value=1)
+        print(f"incorrect passkey, gave {data.passkey}", log_level=LogLevel.INFO)
         return Response(bc.encode({"failure reason": "error private tracker, check passkey"}), mimetype='text/plain')
     
 
     peers = db.get_peers(info_hash=data.info_hash)
 
+    #if new peer insert, if not update
     this_peer_exists = db.is_duplicate(peer_id, info_hash)
 
     if this_peer_exists < 1:
@@ -183,7 +196,7 @@ def announce():
     else:
         db.update_peer(data.peer_id, data.no_peer_id, data.info_hash, is_completed, data.event, data.uploaded, data.downloaded, data.left)
 
-
+    #pack peer results for compact response
     if data.compact:
         compact = b""
         peers = db.get_peers_for_response(info_hash, data.numwant, data.peer_id)
@@ -203,6 +216,7 @@ def announce():
             peers = peers, # binary model for compact
             tracker_id = TRACKER_ID
         )
+    #or send the full fat result
     else:
         response = AnnounceResponse(
             interval = INTERVAL,

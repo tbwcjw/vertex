@@ -44,7 +44,7 @@ tracker:
 http:
   server_enable: True
   threads: 1
-  ip_bind: "127.0.0.1"
+  ip_bind: "0.0.0.0"
   ip_port: 5000
 
 # udp
@@ -60,7 +60,7 @@ udp:
   server_enable: True
 
   ipv4_enable: True
-  ipv4_bind: "127.0.0.1"
+  ipv4_bind: "0.0.0.0"
   ipv4_port: 5001
 
   ipv6_enable: True
@@ -85,7 +85,7 @@ udp:
 #     this is for hashmap type, not sqlite
 #     removes peers that haven't been updated by this threshold
 storage:
-  type: "hashmap"    
+  type: "sqlite"    
   db_name: "peers.db"     
   cleanup_job: True
   cleanup_at: "10:21"
@@ -141,3 +141,5 @@ log:
   print_log: True
   log_file: "vertex.log"
   log_format: '[{time}] - {level}: {module}.{function} - {message}'
+  write_level: "WARN"
+  print_level: "WARN"

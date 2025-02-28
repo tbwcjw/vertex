@@ -2,10 +2,10 @@ from itertools import islice
 import time
 from collections import defaultdict
 
+from log import LogLevel
 from storageinterface import StorageInterface
-from configloader import ConfigLoader
+from configloader import config
 
-config = ConfigLoader()
 
 class Hashmap(StorageInterface):
     def __init__(self):
@@ -30,7 +30,7 @@ class Hashmap(StorageInterface):
         }
         self.peers[peer_key] = peer_data
         self.info_hash_index[info_hash].add(peer_id)
-        print("INFO HASH INDEX " + dict(self.info_hash_index).__str__())
+        print("INFO HASH INDEX " + dict(self.info_hash_index).__str__(), log_level=LogLevel.DEBUG)
 
     def get_unique_infohash_count(self):
         return len(self.info_hash_index)

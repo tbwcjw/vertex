@@ -1,18 +1,15 @@
-import builtins
-import sys
 from tracker_http import app
 from threading import Thread
 import time
 
 import schedule
-from configloader import ConfigLoader
+from configloader import config
 from storagemanager import StorageManager
 from tracker_udp import UDPTracker
 from waitress import serve
 
-from log import Log, LogLevel
+from log import LogLevel
 
-config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 
 def run_schedule():

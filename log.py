@@ -5,9 +5,7 @@ import os
 import sys
 import threading
 import queue
-from configloader import ConfigLoader
-
-config = ConfigLoader()
+from configloader import config
 
 class LogLevel:
     DEBUG = "DEBUG"

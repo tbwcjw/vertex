@@ -4,7 +4,7 @@ import random
 import threading
 
 from storagemanager import StorageManager
-from configloader import ConfigLoader
+from configloader import config
 from bencoding import Bencoding
 
 from stats import conn_stats
@@ -12,7 +12,6 @@ from stats import conn_stats
 from log import LogLevel
 
 # Load Config
-config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 bc = Bencoding()
 
@@ -75,7 +74,7 @@ class UDPTracker:
             conn_stats.update("rx size", value=len(data))
             conn_stats.update("udp connect fail", value=1)
             print(f"invalid packet from {addr}")
-            return  # Ignore invalid packets
+            return 
 
         action, = struct.unpack_from(">I", data, 8)
         is_ipv6 = family == socket.AF_INET6
@@ -117,7 +116,7 @@ class UDPTracker:
         
         unpacked = struct.unpack(">QII20s20sQQQIIIiH", data[:98])
 
-        print(f"handle announce {addr[0]}:{addr[1]}: {unpacked}")
+        print(f"handle announce {addr[0]}:{addr[1]}: {unpacked}", log_level=LogLevel.DEBUG)
 
         connection_id, action, transaction_id, info_hash, peer_id, downloaded, left, uploaded, event, ip, key, num_want, port = unpacked
         
@@ -143,10 +142,10 @@ class UDPTracker:
         this_peer_exists = db.is_duplicate(peer_id, info_hash)
 
         if this_peer_exists < 1:
-            print("INSERTED", log_level=LogLevel.DEBUG)
+            print("inserted peer", log_level=LogLevel.DEBUG)
             db.insert_peer(peer_id, 0, info_hash, addr[0], None, port, uploaded, downloaded, left, event, is_completed)
         else:
-            print("UPDATED")
+            print("updated peer", log_level=LogLevel.DEBUG)
             db.update_peer(peer_id, 0, info_hash, is_completed, event, uploaded, downloaded, left)
 
         peers = db.get_peers_for_response(info_hash, min(num_want, self.max_num_want), peer_id)
@@ -156,7 +155,7 @@ class UDPTracker:
             for peer in peers.values()
         ])
 
-        print(f"announce response: {transaction_id} {self.interval} {len(peers)} {compact_peers}")
+        print(f"announce response: {transaction_id} {self.interval} {len(peers)} {compact_peers}", log_level=LogLevel.INFO)
         response = struct.pack(">IIIII", ACTION_ANNOUNCE, transaction_id, self.interval, len(peers), 0) + compact_peers
         sock = self.server_ipv6 if is_ipv6 else self.server_ipv4
         conn_stats.update("rx size", value=len(data))

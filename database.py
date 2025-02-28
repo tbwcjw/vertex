@@ -1,10 +1,7 @@
 import sqlite3
 
 from storageinterface import StorageInterface
-from configloader import ConfigLoader
-from log import Log
-
-config = ConfigLoader()
+from configloader import config
 
 class Database(StorageInterface):
     def __init__(self, db_name=config.get('storage.db_name')):
@@ -99,11 +96,11 @@ class Database(StorageInterface):
     
     def get_peers_for_response(self, info_hash, numwant, peer_id):
         with self.conn:
+            print(f"peer {peer_id} asked for peers with {info_hash}")
             cursor = self.conn.cursor()
             cursor.execute('''SELECT peer_id, no_peer_id, COALESCE(ipv4, ipv6) AS ip, port FROM peers WHERE info_hash = ? AND peer_id != ? LIMIT ?''', (info_hash, peer_id, numwant,))
             
             result = cursor.fetchall()
-            
             return {
                 (row['peer_id'] if not row['no_peer_id'] else f"anon_{index}"): 
                 {"ip": row['ip'], "port": row['port']} 

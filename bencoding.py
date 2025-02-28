@@ -1,8 +1,5 @@
 import re
-import itertools as it
-import time
 from typing import Any, Dict, List, Tuple, Union
-from log import Log
 
 # simple bencoding library with added (unofficial) support for floats and tuples.
 # tbwcjw 2025
@@ -15,6 +12,7 @@ class Bencoding:
     def encode(obj: Any) -> bytes:
         if isinstance(obj, int):
             return b"i" + str(obj).encode() + b"e"
+        # we encode floats as strings
         elif isinstance(obj, float):
             float_str = f"{obj:.10g}"
             return str(len(float_str)).encode() + b":" + float_str.encode()
@@ -23,6 +21,7 @@ class Bencoding:
         elif isinstance(obj, str):
             return Bencoding.encode(obj.encode('ascii'))
         elif isinstance(obj, list) or isinstance(obj, tuple): 
+            #we encode tuples with the types in the tuple the same way as lists
             if not all(isinstance(item, (int, float, bytes, str, list, dict, tuple)) for item in obj):
                 raise BencodingListItemTypesError(f"List items must be one of the allowed types: int, float, bytes, str, list, dict, tuple not {type(obj)}")
             return b"l" + b"".join(map(Bencoding.encode, obj)) + b"e"

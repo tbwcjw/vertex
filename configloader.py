@@ -25,3 +25,5 @@ class ConfigLoader:
             else:
                 items.append(f"{new_key}: {value}")
         return "\n".join(items)
+    
+config = ConfigLoader()

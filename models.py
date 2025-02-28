@@ -1,7 +1,6 @@
 import sys
-from pydantic import BaseModel, ValidationError, constr, conint, validator
+from pydantic import BaseModel, constr, conint, validator
 from typing import Any, Dict, Literal, Optional, Union
-from log import Log
 
 class Announce(BaseModel):
     ipv4: Optional[str] = None

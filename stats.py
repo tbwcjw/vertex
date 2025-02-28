@@ -1,9 +1,7 @@
-from flask import Blueprint, Response, jsonify
-from configloader import ConfigLoader
+from flask import Blueprint, Response
 import pkg_resources
-
+from configloader import config
 from storagemanager import StorageManager
-from log import Log
 
 stats_bp = Blueprint('stats', __name__)
 
@@ -37,7 +35,6 @@ class ConnStats:
         return self.conn_stats[key]
 
 conn_stats = ConnStats()
-config = ConfigLoader()
 db = StorageManager(config.get('storage.type'))
 
 from flask import request, Response
