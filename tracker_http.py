@@ -4,6 +4,7 @@ import struct
 import time
 
 import urllib
+import urllib.parse
 
 from pydantic import ValidationError
 from bencoding import Bencoding
@@ -111,15 +112,12 @@ def scrape():
 
 #decode infohash from client if encoded. some aren't so we handle those too
 def decode_info_hash(string):
-    try:
+    url_encoded_pattern = r'%[0-9A-Fa-f]{2}'
+    if re.search(url_encoded_pattern, string):
         decoded = urllib.parse.unquote_to_bytes(string).hex()
-        if re.fullmatch(r'[0-9a-f]+', decoded): 
-            return decoded
-    except (ValueError, TypeError):
-        print(f"couldn't decode {string}", log_level=LogLevel.DEBUG)
-        pass 
-
-    return string
+        return decoded
+    else:
+        return string
 
 #network byte order ip+port for compact string
 def pack_ip_port(ip, port):
@@ -132,6 +130,7 @@ def pack_ip_port(ip, port):
 @app.route("/announce", methods=["GET"])
 def announce():
     start_time = time.time()
+    print(request.url)
     #check if client remote addr is ipv4 or ipv6
     client_ip = request.args.get('ip') or request.remote_addr
     if isinstance(client_ip, ipaddress.IPv6Address):
@@ -148,6 +147,9 @@ def announce():
 
     compact = request.args.get('compact') == '1'
     peer_id = request.args.get('peer_id')
+
+    if peer_id is None:
+        return Response(bc.encode({"failure reason": "incomplete request, no peer id"}), mimetype='text/plain')
 
     print(f"PEER ID {peer_id}",log_level=LogLevel.DEBUG)
     #clamp max_want

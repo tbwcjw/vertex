@@ -8,6 +8,7 @@
 
 - Figure out why keyboardinterrupts dont work
 
+- nonblocking flask/sqlite
 
 - **Implement peer selection algorithm**  
   - Return peers based on the client's request:

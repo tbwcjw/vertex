@@ -1,5 +1,6 @@
 from flask import Blueprint, Response
 import pkg_resources
+from flask import request, Response
 from configloader import config
 from storagemanager import StorageManager
 
@@ -36,8 +37,6 @@ class ConnStats:
 
 conn_stats = ConnStats()
 db = StorageManager(config.get('storage.type'))
-
-from flask import request, Response
 
 @stats_bp.route('/stats', methods=["GET"])
 def handle_stats():

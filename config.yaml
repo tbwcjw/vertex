@@ -85,7 +85,7 @@ udp:
 #     this is for hashmap type, not sqlite
 #     removes peers that haven't been updated by this threshold
 storage:
-  type: "sqlite"    
+  type: "hashmap"    
   db_name: "peers.db"     
   cleanup_job: True
   cleanup_at: "10:21"
@@ -132,7 +132,7 @@ stats:
 # log_file: <string> default "vertex.log"
 # log_format: <string> default "[{time}] - {level}: {module}.{function} - {message}"
 #   time: time.asctime()
-#   level: "INFO", "WARN", "ERROR", "DEBUG" default "INFO"
+#   levels: what priority level the message is
 #   module: filename from which print/exception was called
 #   function: function from which print/exception was called
 #   message: print string or exception string
@@ -141,5 +141,3 @@ log:
   print_log: True
   log_file: "vertex.log"
   log_format: '[{time}] - {level}: {module}.{function} - {message}'
-  write_level: "WARN"
-  print_level: "WARN"

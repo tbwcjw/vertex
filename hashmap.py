@@ -30,7 +30,6 @@ class Hashmap(StorageInterface):
         }
         self.peers[peer_key] = peer_data
         self.info_hash_index[info_hash].add(peer_id)
-        print("INFO HASH INDEX " + dict(self.info_hash_index).__str__(), log_level=LogLevel.DEBUG)
 
     def get_unique_infohash_count(self):
         return len(self.info_hash_index)
@@ -74,7 +73,6 @@ class Hashmap(StorageInterface):
         return sum(1 for peer in self.peers.values() if peer["info_hash"] == info_hash and not peer["is_completed"])
 
     def get_peers(self, info_hash):
-        print(len(self.peers))
         return [peer for peer in self.peers.values() if peer["info_hash"] == info_hash]
 
     def fullscrape(self):

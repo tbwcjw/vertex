@@ -120,6 +120,12 @@ class UDPTracker:
 
         connection_id, action, transaction_id, info_hash, peer_id, downloaded, left, uploaded, event, ip, key, num_want, port = unpacked
         
+        if peer_id is None:
+            conn_stats.update("rx size", value=len(data))
+            conn_stats.update("announce fail", value=1)
+            self.send_error(transaction_id, addr, "incomplete request, no peer id specified")
+            return
+        
         if action != ACTION_ANNOUNCE:
             conn_stats.update("rx size", value=len(data))
             conn_stats.update("announce fail", value=1)
