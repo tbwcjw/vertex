@@ -6,8 +6,6 @@
 
 - Model UDP request/responses
 
-- Figure out why keyboardinterrupts dont work
-
 - nonblocking flask/sqlite
 
 - **Implement peer selection algorithm**  
@@ -25,3 +23,6 @@
 - **Blacklist**
   - Block or deny requests from IPs.  
   - Directly modify `iptables` using `from pyroute2 import IPRoute`.
+
+  **Testing**
+  - More comprehensive testing methodologies and implementations.

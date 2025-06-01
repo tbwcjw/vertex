@@ -27,8 +27,6 @@ EVENT_COMPLETED = 1
 EVENT_STARTED = 2
 EVENT_STOPPED = 3
 
-
-
 class UDPTracker:
     def __init__(self, ipv4_ip="127.0.0.1", ipv4_port=6970, ipv6_ip="::", ipv6_port=6971):
         self.sockets = []

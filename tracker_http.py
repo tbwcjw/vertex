@@ -121,17 +121,12 @@ def decode_info_hash(string):
 
 #network byte order ip+port for compact string
 def pack_ip_port(ip, port):
-    result = b""
-    ip_bytes = socket.inet_aton(ip)   #4 byte binary
-    port_bytes = struct.pack("!H", port) #2 byte big edian
-    result = ip_bytes + port_bytes
-    return result
+    return socket.inet_aton(ip) + struct.pack("!H", port)
 
 @app.route("/announce", methods=["GET"])
 def announce():
-    start_time = time.time()
-    print(request.url)
     #check if client remote addr is ipv4 or ipv6
+    print(request.url)
     client_ip = request.args.get('ip') or request.remote_addr
     if isinstance(client_ip, ipaddress.IPv6Address):
         client_ipv6 = client_ip
@@ -230,8 +225,6 @@ def announce():
         )
         print(response.peers)
 
-    end_time = time.time()
-    elapsed = end_time - start_time
-    print(f"elapsed time: {elapsed}", log_level=LogLevel.DEBUG)
+
     conn_stats.update(key="announce success", value=1)
     return Response(bc.encode(response.dict()), mimetype='text/plain')

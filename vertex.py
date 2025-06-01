@@ -7,7 +7,6 @@ from configloader import config
 from storagemanager import StorageManager
 from tracker_udp import UDPTracker
 from waitress import serve
-
 from log import LogLevel
 
 db = StorageManager(config.get('storage.type'))

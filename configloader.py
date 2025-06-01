@@ -1,10 +1,25 @@
+import os
 import yaml
 
 class ConfigLoader:
     def __init__(self, config_path="config.yaml"):
-        with open(config_path, "r") as file:
-            self.config = yaml.safe_load(file)
+        self.config = self._load_config(config_path)
+        if self.config is None and os.path.exists("config.yaml.sample"):
+            self.config = self._load_config("config.yaml.sample")
+        if self.config is None:
+            exit(1)
 
+    def _load_config(self, path):
+        try:
+            with open(path, "r") as file:
+                print(f"using {path}")
+                return yaml.safe_load(file)
+        except FileNotFoundError:
+            print(f"{path} not found.")
+        except yaml.YAMLError as e:
+            print(f"error parsing {path}: {e}")
+        return None
+    
     def get(self, key, default=None):
         keys = key.split(".")
         value = self.config

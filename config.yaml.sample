@@ -43,8 +43,8 @@ tracker:
 # ip_port: <integer> default "6969"
 http:
   server_enable: True
-  threads: 1
-  ip_bind: "0.0.0.0"
+  threads: 4
+  ip_bind: "127.0.0.1"
   ip_port: 5000
 
 # udp
@@ -73,7 +73,9 @@ udp:
 #     sqlite3 database is far slower, but persistent.
 #     hashmap is faster, but volatile.
 #   db_name: <string> default "peers.db"
-#     this is for nonvolatile sqlite db only. allows pathing.
+#     this is for sqlite db only. allows pathing.
+#     can use :memory: for a memory based volatile database.
+#     but slower than hashmap
 #   cleanup_job: <bool> default: False
 #     toggle cleanup job.
 #   cleanup_at: <string> (HH:MM) default: "12:00"
@@ -85,10 +87,10 @@ udp:
 #     this is for hashmap type, not sqlite
 #     removes peers that haven't been updated by this threshold
 storage:
-  type: "hashmap"    
+  type: "sqlite"    
   db_name: "peers.db"     
   cleanup_job: True
-  cleanup_at: "10:21"
+  cleanup_at: "12:00"
   remove_older_than: "1 day"
   remove_older_than_secs: 86400
 

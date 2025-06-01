@@ -10,6 +10,7 @@ class Database(StorageInterface):
         self.older_than = f"-{config.get('remove_older_than')}"
         self.cursor = self.conn.cursor()
         self.cursor.execute('PRAGMA journal_mode=WAL;') 
+        self.cursor.execute("PRAGMA synchronous = OFF")
         self.create_tables()
     
     def create_tables(self):
@@ -132,6 +133,7 @@ class Database(StorageInterface):
         with self.conn:
             cursor = self.conn.cursor()
             cursor.execute(f"DELETE FROM peers WHERE last_updated < datetime('now', '{self.older_than}')")
+            cursor.execute("VACUUM")
             print(f"Cleaned up peers removed {cursor.rowcount} peer entries")
 
 #singleton
